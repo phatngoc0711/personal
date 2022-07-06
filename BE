@@ -1,0 +1,227 @@
+Imports System.IO
+Imports System.Text
+Imports System.Text.RegularExpressions
+
+Public Class Form1
+    Private tableDataGrid As New DataTable()
+    Private appPath As String = Application.StartupPath()
+    Private di As New IO.DirectoryInfo(appPath)
+    Private aryFileIdx As IO.FileInfo() = di.GetFiles("*.idx")
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        'Set key press = true
+        Me.KeyPreview = True
+        '--------------------
+        'Check exist .IDK
+        Dim totalFileIdx As Integer
+        totalFileIdx = aryFileIdx.Length
+        If totalFileIdx = 0 Then
+            MsgBox("Not Found IDX FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+               "Warning")
+            Close()
+        End If
+        For k As Integer = 0 To aryFileIdx.Length - 1 Step +1
+            RichTextBox1.AppendText(aryFileIdx(k).Name)
+            RichTextBox1.AppendText(vbNewLine)
+        Next k
+        '-------------------------------------------------------
+        'Check .ini
+        Dim aryFileIni As IO.FileInfo() = di.GetFiles("*.ini")
+        Dim totalFileIni As Integer
+        totalFileIni = aryFileIni.Length
+        If totalFileIni = 0 Then
+            MsgBox("Not Found INI FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+               "Warning")
+            Close()
+        End If
+        '-------------------------------------------------------
+        'WorkType In ListBox
+        Dim line() As String
+        line = File.ReadAllLines(appPath + "\config.ini")
+        For m As Integer = 0 To line.Length - 1 Step +1
+            If line(m) = "[WorkType]" Then
+                For n As Integer = m + 2 To line.Length - 1 Step +1
+                    Dim match As Match = Regex.Match(line(n),
+                                         "=",
+                                         RegexOptions.IgnoreCase)
+
+                    If match.Success Then
+                        Dim sb As New StringBuilder()
+                        For Each c As Char In line(n)
+                            If [Char].IsLetter(c) Then
+                                sb.Append(c)
+                            End If
+                        Next
+                        ListBox1.Items.Add(sb)
+                    End If
+
+                    If line(n) = "[WorkTypeDetail]" Then
+                        Exit For
+                    End If
+                Next n
+            End If
+        Next m
+        '-------------------------------------------------------
+        ListBox1.SelectionMode = SelectionMode.MultiExtended
+        Dim i As Integer
+        For i = 0 To Me.ListBox1.Items.Count - 1
+            Me.ListBox1.SetSelected(i, True)
+        Next i
+        '-------------------------------------------------------
+        'Datagridview
+        tableDataGrid.Columns.Add("WorkType", Type.GetType("System.String"))
+        tableDataGrid.Columns.Add("Date", Type.GetType("System.String"))
+        tableDataGrid.Columns.Add("Shop CODE", Type.GetType("System.String"))
+        tableDataGrid.Columns.Add("Pos NO", Type.GetType("System.String"))
+        tableDataGrid.Columns.Add("Receipt Code", Type.GetType("System.String"))
+        tableDataGrid.Columns.Add("Manage Code", Type.GetType("System.String"))
+        DataGridView1.DataSource = tableDataGrid
+        '--------------------------------------------------------------------
+        'ComboBox
+        ComboBox1.Items.Add("9")
+        ComboBox1.Items.Add("12")
+        ComboBox1.Items.Add("15")
+        ComboBox1.Items.Add("18")
+        ComboBox1.Items.Add("21")
+        ComboBox1.Items.Add("24")
+        'TextBox
+        TextBox1.TextAlign = HorizontalAlignment.Right
+        TextBox1.MaxLength = 4
+        TextBox2.TextAlign = HorizontalAlignment.Right
+        TextBox2.MaxLength = 2
+        TextBox3.TextAlign = HorizontalAlignment.Right
+        TextBox3.MaxLength = 8
+
+        'Block Type RichTextBox
+        RichTextBox1.ReadOnly = True
+    End Sub
+    Private Sub Button2_Click(sender As Object, e As EventArgs)
+        Dim frm As New Form2
+        frm.Show()
+    End Sub
+    'Public Function GetAgePhrase(ByVal age As Integer) As String
+    '    If age > 60 Then Return "Senior"
+    '    If age > 40 Then Return "Middle-aged"
+    '    If age > 20 Then Return "Adult"
+    '    If age > 12 Then Return "Teen-aged"
+    '    If age > 4 Then Return "School-aged"
+    '    If age > 1 Then Return "Toddler"
+    '    Return "Infant"
+    'End Function
+    Private Sub TextBox1_KeyPress(sender As Object, e As KeyPressEventArgs) Handles TextBox1.KeyPress
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Delete) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+    End Sub
+    Private Sub TextBox2_KeyPress(sender As Object, e As KeyPressEventArgs) Handles TextBox2.KeyPress
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Delete) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+    End Sub
+    Private Sub TextBox3_KeyPress(sender As Object, e As KeyPressEventArgs) Handles TextBox3.KeyPress
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Delete) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim lineDataGrid() As String
+        Dim valsDataGrid() As String
+        Dim Flag As Integer = 0
+        For f As Integer = 0 To aryFileIdx.Length - 1 Step +1
+            'lineDataGrid = File.ReadAllLines(appPath + "\20110501_20110531.IDX")
+            lineDataGrid = File.ReadAllLines(appPath + "\" + aryFileIdx(f).Name)
+            For x As Integer = 0 To lineDataGrid.Length - 1 Step +1
+                If tableDataGrid.Rows.Count > 2999 Then
+                    '         MsgBox("Not Over 3000", MsgBoxStyle.OkOnly Or MsgBoxStyle.Exclamation,
+                    '"Warning")
+                    Flag = 1
+                    Exit For
+                End If
+                valsDataGrid = lineDataGrid(x).ToString().Split("	")
+                Dim row(valsDataGrid.Length - 5) As String
+                row(0) = valsDataGrid(valsDataGrid.Length - 5).Trim()
+                For y As Integer = 1 To valsDataGrid.Length - 5 Step +1
+                    row(y) = valsDataGrid(y - 1).Trim()
+                Next y
+
+                tableDataGrid.Rows.Add(row)
+                If x Mod 2 <> 1 Then
+                    DataGridView1.Rows(x).DefaultCellStyle.BackColor = Color.LightGreen
+                End If
+            Next x
+            If Flag = 1 Then
+                MsgBox("Not Over 3000", MsgBoxStyle.OkOnly Or MsgBoxStyle.Exclamation,
+                    "Warning")
+                Exit For
+            End If
+        Next f
+        Label7.Text = "Total Record: " + tableDataGrid.Rows.Count.ToString
+    End Sub
+
+    Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+        'e.SuppressKeyPress = True
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.C Then
+                e.Handled = True
+                TextBox1.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.P Then
+                e.Handled = True
+                TextBox2.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.R Then
+                e.Handled = True
+                TextBox3.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.D Then
+                e.Handled = True
+                DateTimePicker1.Focus()
+            End If
+        End If
+        'If Control.ModifierKeys = Keys.Alt Then
+        '    If e.KeyCode = Keys.P Then
+        '        e.Handled = True
+        '        Dim frm As New Form2
+        '        frm.Show()
+        '    End If
+        'End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.X Then
+                e.Handled = True
+                If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+               "Warning") = vbYes Then
+                    Close()
+                End If
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.F Then
+                e.Handled = True
+                ComboBox1.Focus()
+            End If
+        End If
+    End Sub
+    Private Sub ToolStripMenuItem2_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItem2.Click
+        If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+               "Warning") = vbYes Then
+            Close()
+        End If
+    End Sub
+    Private Sub Form1_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+               "Warning") = vbNo Then
+            e.Cancel = True
+        End If
+    End Sub
+
+    Private Sub ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItem1.Click
+        If RichTextBox1 Is Nothing Then
+        End If
+    End Sub
+End Class
