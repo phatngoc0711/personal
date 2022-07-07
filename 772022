@@ -1,0 +1,5 @@
+If Not ListBox1.SelectedItems Is Nothing Then
+            For l As Integer = 0 To ListBox1.SelectedItems.Count - 1 Step +1
+                test.Add(ListBox1.SelectedItems.Item(l).ToString)
+            Next l
+        End If
