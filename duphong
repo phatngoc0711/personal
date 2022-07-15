@@ -1,0 +1,110 @@
+ '---------------------------------------------------------------------------------------------------------
+    'Private Sub cmdSearch_Click(sender As Object, e As EventArgs) Handles cmdSearch.Click
+    '    'Button1.Text = "Cancel (E)"
+    '    listIdWorkTypeFromListBox = getIdWorkTypeFromListBox()
+    '    mvInt_TotalTextBoxNotNull = 0
+    '    If Check(txtShopCode.Text.ToString) Then
+    '        mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+    '    End If
+    '    If Check(txtPosNo.Text.ToString) Then
+    '        mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+    '    End If
+    '    If Check(txtReceiptCode.Text.ToString) Then
+    '        mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+    '    End If
+    '    Dim tableDataGrid As New DataTable()
+    '    'Datagridview
+    '    tableDataGrid.Columns.Add("WorkType", Type.GetType("System.String"))
+    '    tableDataGrid.Columns.Add("Date", Type.GetType("System.String"))
+    '    tableDataGrid.Columns.Add("Shop CODE", Type.GetType("System.String"))
+    '    tableDataGrid.Columns.Add("Pos NO", Type.GetType("System.String"))
+    '    tableDataGrid.Columns.Add("Receipt Code", Type.GetType("System.String"))
+    '    tableDataGrid.Columns.Add("Manage Code", Type.GetType("System.String"))
+    '    dgvInformationRecord.DataSource = tableDataGrid
+    '    '--------------------------------------------------------------------
+    '    'If Flag Mod 2 = 0 Then
+    '    '    Button1.Text = "Search (S)"
+    '    'Else
+    '    '    Button1.Text = "Cancel (E)"
+    '    'End If
+    '    'Cancel
+    '    '--------------------------------------------------------------------------
+    '    'Search
+    '    Dim list As List(Of String)
+    '    list = GetAllLineAfterSearch()
+    '    Dim valsDataGrid() As String
+    '    For x As Integer = 0 To list.Count - 1 Step +1
+    '        If tableDataGrid.Rows.Count > 2999 Then
+    '            MsgBox("Not Over 3000", MsgBoxStyle.OkOnly Or MsgBoxStyle.Exclamation,
+    '                "Warning")
+    '            Exit For
+    '        End If
+    '        valsDataGrid = list(x).ToString().Split("	")
+    '        listDataGridView.Add(list(x))
+    '        Dim row(valsDataGrid.Length - 5) As String
+    '        'row(0) = valsDataGrid(valsDataGrid.Length - 5).Trim()
+    '        Dim typeWordId As String = ""
+    '        typeWordId = valsDataGrid(valsDataGrid.Length - 5).Trim()
+    '        row(0) = getIniWorkTypeName(lineWordDetail, typeWordId)
+    '        '-------------------------------------------------------------------
+    '        For y As Integer = 1 To valsDataGrid.Length - 5 Step +1
+    '            row(y) = valsDataGrid(y - 1).Trim()
+    '        Next y
+    '        tableDataGrid.Rows.Add(row)
+    '    Next x
+    '    lblTotalRecord.Text = "Total Record: " + tableDataGrid.Rows.Count.ToString
+    'End Sub
+    ''get ALL line afterSeach By text
+    'Private Function GetAllLineAfterSearch() As List(Of String)
+    '    Dim day1 As Date
+    '    Dim day2 As Date
+    '    day1 = dtmStart.Value
+    '    day2 = dtmFinish.Value
+    '    Dim key1 As String = txtShopCode.Text
+    '    Dim key2 As String = txtPosNo.Text
+    '    Dim key3 As String = txtReceiptCode.Text
+    '    If key1 <> "0" Then
+    '        key1 = getTextValue(txtShopCode.Text, 4)
+    '    End If
+    '    If key2 <> "0" Then
+    '        key2 = getTextValue(txtPosNo.Text, 2)
+    '    End If
+    '    If key3 <> "0" Then
+    '        key3 = getTextValue(txtReceiptCode.Text, 8)
+    '    End If
+    '    Dim lineData As New List(Of String)
+    '    For f As Integer = 0 To mvFso_GetAllFileIdx.Length - 1 Step +1
+    '        Using objReader As New StreamReader(mvStr_AppPath + "\" + mvFso_GetAllFileIdx(f).Name)          '1
+    '            Do While objReader.Peek() <> -1
+    '                Dim Line As String = objReader.ReadLine()
+    '                'Check TextBox---------------ListBox---------------DateTime--------------------------
+    '                'If lineCheckText(Line, key1, key2, key3) And lineCheckListBox(Line) And lineCheckDateTime(Line, day1, day2) Then
+    '                '    lineData.Add(Line)
+    '                'End If
+    '                '---------------------------------------------------------------------
+    '                If lineCheckDateTime(Line, day1, day2) Then                                 '2'
+    '                    If lineCheckText(Line, key1, key2, key3) Then                            '3'
+    '                        If lineCheckListBox(Line) Then                                       '4
+    '                            lineData.Add(Line)
+    '                        End If
+    '                    End If
+    '                End If
+    '            Loop
+    '            objReader.Close()
+    '        End Using
+    '        'Using listStreamReaderIdx(f)
+    '        '    Do While listStreamReaderIdx(f).Peek() <> -1
+    '        '        Dim Line As String = listStreamReaderIdx(f).ReadLine()
+    '        '        If lineCheckDateTime(Line, day1, day2) Then
+    '        '            If lineCheckText(Line, key1, key2, key3) Then
+    '        '                If lineCheckListBox(Line) Then
+    '        '                    lineData.Add(Line)
+    '        '                End If
+    '        '            End If
+    '        '        End If
+    '        '    Loop
+    '        'End Using
+    '    Next f
+    '    Return lineData
+    'End Function
+    '---------------------------------------------------------------------------------------------------------------
