@@ -32,3 +32,87 @@ Private beamMoving As Integer
             beamMoving = 1
         End If
     End Sub
+
+
+
+
+
+
+Dim resizing As Boolean = False
+    Dim rowStyles As TableLayoutRowStyleCollection
+    Dim columnStyles As TableLayoutColumnStyleCollection
+    Dim colindex As Integer = -1
+    Dim rowindex As Integer = -1
+
+    Private Sub TableLayoutPanel1_MouseDown(sender As Object, e As MouseEventArgs) Handles TableLayoutPanel1.MouseDown
+        If (e.Button = System.Windows.Forms.MouseButtons.Left) Then
+            rowStyles = TableLayoutPanel1.RowStyles
+            columnStyles = TableLayoutPanel1.ColumnStyles
+            resizing = True
+        End If
+
+    End Sub
+
+    Private Sub TableLayoutPanel1_MouseMove(sender As Object, e As MouseEventArgs) Handles TableLayoutPanel1.MouseMove
+        If Not resizing Then
+            Dim width As Double = 0
+            Dim height As Double = 0
+            For i As Integer = 0 To rowStyles.Count Step +1
+                height += rowStyles(i).Height
+                If (e.Y > height - 3 And e.Y < height + 3) Then
+                    rowindex = i
+                    TableLayoutPanel1.Cursor = Cursors.HSplit
+                    Exit For
+                Else
+                    rowindex = -1
+                    TableLayoutPanel1.Cursor = Cursors.Default
+                End If
+
+            Next i
+
+            For i As Integer = 0 To columnStyles.Count Step +1
+                width += columnStyles(i).Width
+                If (e.X > width - 3 And e.X < width + 3) Then
+                    colindex = i
+                    If (rowindex > -1) Then
+                        TableLayoutPanel1.Cursor = Cursors.Cross
+                    Else
+                        TableLayoutPanel1.Cursor = Cursors.VSplit
+                    End If
+                Else
+                    colindex = -1
+                    If (rowindex = -1) Then
+                        TableLayoutPanel1.Cursor = Cursors.Default
+                    End If
+                End If
+
+            Next i
+
+        End If
+        If (resizing And (colindex > -1 Or rowindex > -1)) Then
+            Dim width As Double
+            Dim height As Double
+            width = e.X
+            height = e.Y
+            If (colindex > -1) Then
+                For i As Integer = 0 To colindex Step +1
+                    width -= columnStyles(i).Width
+                Next i
+            End If
+            If (rowindex > -1) Then
+                For i As Integer = 0 To rowindex Step +1
+                    height -= rowStyles(i).Height
+                Next i
+                rowStyles(rowindex).SizeType = SizeType.Absolute
+                rowStyles(rowindex).Height = height
+            End If
+        End If
+
+    End Sub
+
+    Private Sub TableLayoutPanel1_MouseUp(sender As Object, e As MouseEventArgs) Handles TableLayoutPanel1.MouseUp
+        If (e.Button = System.Windows.Forms.MouseButtons.Left) Then
+            resizing = False
+            TableLayoutPanel1.Cursor = Cursors.Default
+        End If
+    End Sub
