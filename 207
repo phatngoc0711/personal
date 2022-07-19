@@ -3,7 +3,7 @@ Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
 
-Public Class cls_APP_SearchForm
+Public Class Form1
 
     Private mvStr_AppPath As String = Application.StartupPath()
     Private mvDic_DirectoryInfo As New IO.DirectoryInfo(mvStr_AppPath)
@@ -382,6 +382,7 @@ Public Class cls_APP_SearchForm
 
     'Event click button
     Private Sub cmdSearch_Click(sender As Object, e As EventArgs) Handles cmdSearch.Click
+
         rtbReceiptDetail.Clear()
         'Button1.Text = "Cancel (E)"
         mvLst_ListIdWorkTypeFromListBox = fncM_APP_GetIdWorkTypeFromListBox()
@@ -400,6 +401,7 @@ Public Class cls_APP_SearchForm
 
     'Set default textbox
     Private Sub subM_APP_SetTextboxDefault()
+
         txtShopCode.TextAlign = HorizontalAlignment.Right
         txtShopCode.MaxLength = 4
         txtPosNo.TextAlign = HorizontalAlignment.Right
@@ -413,6 +415,7 @@ Public Class cls_APP_SearchForm
 
     'add value to combobox
     Private Sub subM_APP_SetComboBoxDefault()
+
         cmbFontReceiptSize.Items.Add("9")
         cmbFontReceiptSize.Items.Add("12")
         cmbFontReceiptSize.Items.Add("15")
@@ -425,6 +428,7 @@ Public Class cls_APP_SearchForm
 
     'set event when load form
     Private Sub frm_APP_SearchForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
         Try
             mvFso_GetAllFileIdx = mvDic_DirectoryInfo.GetFiles("*.idx")
             mvFso_GetAllFileDat = mvDic_PathDataFile.GetFiles("*.DAT")
@@ -454,10 +458,10 @@ Public Class cls_APP_SearchForm
                 Close()
             End If
         End If
-            '-------------------------------------------------------
-            'Check .ini
+        '-------------------------------------------------------
+        'Check .ini
 
-            If wInt_TotalFileIni = 0 Then
+        If wInt_TotalFileIni = 0 Then
             MsgBox("Not Found INI FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
                "Warning")
             Close()
@@ -527,6 +531,7 @@ Public Class cls_APP_SearchForm
 
     'Set shorcut key for control
     Private Sub frm_APP_SearchForm_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+
         If Control.ModifierKeys = Keys.Alt Then
             If e.KeyCode = Keys.C Then
                 e.Handled = True
@@ -660,6 +665,7 @@ Public Class cls_APP_SearchForm
 
     'event click line in datagridview to show information
     Private Sub dgvInformationRecord_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvInformationRecord.CellClick
+
         dgvInformationRecord.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         rtbReceiptDetail.Clear()
         If dgvInformationRecord.RowCount > 1 Then
@@ -687,7 +693,23 @@ Public Class cls_APP_SearchForm
         cmbFontReceiptSize.SelectAll()
         e.Handled = True
     End Sub
+    Private Function fncM_GetMoneyFormat(ByVal iStr_Money As String) As String
 
+        Dim wStr_Value As String
+        wStr_Value = ""
+        Dim wInt_Length As Integer
+        wInt_Length = iStr_Money.Length
+        If wInt_Length < 4 Then
+            wStr_Value = iStr_Money
+        ElseIf wInt_Length = 4 Then
+            wStr_Value = iStr_Money(0) + "," + iStr_Money(1) + iStr_Money(2) + iStr_Money(3)
+        ElseIf wInt_Length = 5 Then
+            wStr_Value = iStr_Money(0) + iStr_Money(1) + "," + iStr_Money(2) + iStr_Money(3) + iStr_Money(4)
+        ElseIf wInt_Length = 5 Then
+            wStr_Value = iStr_Money(0) + iStr_Money(1) + iStr_Money(2) + "," + iStr_Money(3) + iStr_Money(4) + iStr_Money(5)
+        End If
+        Return wStr_Value
+    End Function
     'get information show in richtextbox
     Private Sub subM_APP_FillRichTextBox()
 
@@ -754,10 +776,10 @@ Public Class cls_APP_SearchForm
                 rtbReceiptDetail.AppendText("CD Customer                  " + vbTab + ": " + Environment.NewLine)
                 rtbReceiptDetail.AppendText("Name Customer              " + vbTab + ": " + Environment.NewLine)
                 rtbReceiptDetail.AppendText("Total                             " + vbTab + ": " + wStr_Line1.Count.ToString + Environment.NewLine)
-                rtbReceiptDetail.AppendText("Total Money                    " + vbTab + ": " + wLst_ValueLine0(19) + Environment.NewLine)
-                rtbReceiptDetail.AppendText("Subtotal                       " + vbTab + ": " + wLst_ValueLine0(20) + Environment.NewLine)
-                rtbReceiptDetail.AppendText("Money given                   " + vbTab + ": " + wLst_ValueLine0(21) + Environment.NewLine)
-                rtbReceiptDetail.AppendText("Change                        " + vbTab + ": " + wLst_ValueLine0(22) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Total Money                    " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine0(19)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Subtotal                       " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine0(20)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Money given                   " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine0(21)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Change                        " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine0(22)) + Environment.NewLine)
                 rtbReceiptDetail.AppendText("Not Tax                        " + vbTab + ": " + wLst_ValueLine0(23) + Environment.NewLine)
                 rtbReceiptDetail.AppendText("Tax                              " + vbTab + ": " + wLst_ValueLine0(27) + Environment.NewLine)
                 rtbReceiptDetail.AppendText("Point of use                  " + vbTab + ": " + Environment.NewLine)
@@ -771,7 +793,7 @@ Public Class cls_APP_SearchForm
                     rtbReceiptDetail.AppendText("Item Name                     " + vbTab + ": " + wLst_ValueLine1(10) + Environment.NewLine)
                     rtbReceiptDetail.AppendText("Tax Type                       " + vbTab + ": " + wLst_ValueLine1(11) + Environment.NewLine)
                     rtbReceiptDetail.AppendText("Total Sell                      " + vbTab + ": " + wLst_ValueLine1(7) + Environment.NewLine)
-                    rtbReceiptDetail.AppendText("After Discount                 " + vbTab + ": " + wLst_ValueLine1(8) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("After Discount                 " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine1(8)) + Environment.NewLine)
                     rtbReceiptDetail.AppendText("Discount                      " + vbTab + ": " + wLst_ValueLine1(9) + Environment.NewLine)
                     rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
                 Next wInt_Counter1
@@ -779,7 +801,7 @@ Public Class cls_APP_SearchForm
                     Dim wLst_ValueLine2() As String
                     wLst_ValueLine2 = wStr_Line2(wInt_Counter1).Split("	")
                     rtbReceiptDetail.AppendText("Payment Type               " + vbTab + ": " + wLst_ValueLine2(11) + Environment.NewLine)
-                    rtbReceiptDetail.AppendText("Amount money                " + vbTab + ": " + wLst_ValueLine2(5) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Amount money                " + vbTab + ": " + fncM_GetMoneyFormat(wLst_ValueLine2(5)) + Environment.NewLine)
                     rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
                 Next wInt_Counter1
                 rtbReceiptDetail.AppendText("Change                        " + vbTab + ": " + wLst_ValueLine3(7) + Environment.NewLine)
@@ -971,4 +993,9 @@ Public Class cls_APP_SearchForm
             End If
         End If
     End Sub
+
+    Private Sub Form1_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
+        Me.MinimumSize = New Size(1050, 350)
+    End Sub
+
 End Class
