@@ -3,7 +3,7 @@ Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
 
-Public Class cls_APP_SearchForm
+Public Class Form1
 
     Private mvStr_AppPath As String = Application.StartupPath()
     Private mvDic_DirectoryInfo As New IO.DirectoryInfo(mvStr_AppPath)
@@ -22,20 +22,48 @@ Public Class cls_APP_SearchForm
     Private mvThr_CheckFileExist As New Thread(AddressOf subM_APP_CheckExistFileIni)
     Private Const mcStr_ButtonSearchText = "Search(S)"
     Private Const mcStr_ButtonCancelText = "Cancel(E)"
+    Private mvStr_GetLengthShopCD As String
+    Private mvStr_GetLengthPosNo As String
+    Private mvStr_GetLengthReceiptNo As String
 
     'Check exist file ini
     Private Sub subM_APP_CheckExistFileIni()
+
         Try
             mvLst_ListLineInFileConfigIni = File.ReadAllLines(mvStr_AppPath + "\config.ini")
         Catch ex As Exception
             Me.Close()
-
         End Try
         'get 2 list Worktype and Worktype Detail
         mvLst_ListLineWordDetail = fncM_APP_GetIniWorkTypeNameLineInFileIni("[WorkTypeDetail]", "[DenpyoType]")
         mvLst_WorkTypeNameFromIni = fncM_APP_GetIniWorkTypeNameLineInFileIni("[WorkType]", "[WorkTypeDetail]")
     End Sub
+    Private Function fncM_APP_GetDigitInLine(ByVal iStr_Value As String) As String
 
+        Dim wStr_Value As String
+        wStr_Value = ""
+        For Each wChr_GetChar As Char In iStr_Value
+            If [Char].IsDigit(wChr_GetChar) Then
+                wStr_Value = wStr_Value + wChr_GetChar
+            End If
+        Next
+        Return wStr_Value
+    End Function
+    Private Sub subM_APP_SetLengthTextBox()
+
+        Try
+            mvLst_ListLineInFileConfigIni = File.ReadAllLines(mvStr_AppPath + "\config.ini")
+        Catch ex As Exception
+        End Try
+        For wInt_Counter1 As Integer = 0 To mvLst_ListLineInFileConfigIni.Length - 1 Step +1
+            If String.Equals(mvLst_ListLineInFileConfigIni(wInt_Counter1).Trim, "[Format]") Then
+                mvStr_GetLengthShopCD = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 2))
+                mvStr_GetLengthPosNo = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 3))
+                mvStr_GetLengthReceiptNo = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 4))
+                Exit For
+            End If
+        Next wInt_Counter1
+    End Sub
     'Get list line from position1 to position2 in file ini contain '='
     Private Function fncM_APP_GetIniWorkTypeNameLineInFileIni(ByVal iStr_Position1 As String, ByVal iStr_Position2 As String) As List(Of String)
 
@@ -403,11 +431,11 @@ Public Class cls_APP_SearchForm
     Private Sub subM_APP_SetTextboxDefault()
 
         txtShopCode.TextAlign = HorizontalAlignment.Right
-        txtShopCode.MaxLength = 4
+        txtShopCode.MaxLength = mvStr_GetLengthShopCD
         txtPosNo.TextAlign = HorizontalAlignment.Right
-        txtPosNo.MaxLength = 2
+        txtPosNo.MaxLength = mvStr_GetLengthPosNo
         txtReceiptCode.TextAlign = HorizontalAlignment.Right
-        txtReceiptCode.MaxLength = 8
+        txtReceiptCode.MaxLength = mvStr_GetLengthReceiptNo
         txtShopCode.Text = 0
         txtPosNo.Text = 0
         txtReceiptCode.Text = 0
@@ -430,13 +458,14 @@ Public Class cls_APP_SearchForm
     Private Sub frm_APP_SearchForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         Try
-            mvFso_GetAllFileIdx = mvDic_DirectoryInfo.GetFiles("*.idx")
+        mvFso_GetAllFileIdx = mvDic_DirectoryInfo.GetFiles("*.idx")
             mvFso_GetAllFileDat = mvDic_PathDataFile.GetFiles("*.DAT")
         Catch
             Me.Close()
 
         End Try
-
+        'Get Length TextBox 
+        subM_APP_SetLengthTextBox()
         'Set key press = true
         Me.KeyPreview = True
         '--------------------
@@ -516,7 +545,7 @@ Public Class cls_APP_SearchForm
         '--------------------------------------------------------------------
         'Set DATE TIME
         subM_APP_SetDefaultDateTime()
-        dtmStart.Focus()
+        dtmStart.Select()
         '------------------------------------------------------------------- 
         'ComboBox
         subM_APP_SetComboBoxDefault()
@@ -612,8 +641,13 @@ Public Class cls_APP_SearchForm
     Private Sub frm_APP_SearchForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
 
         If mvInt_FlagClose = 1 Then
-            If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
-               "Warning") = vbNo Then
+            If cmdSearch.Text = mcStr_ButtonSearchText Then
+                If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+                   "Warning") = vbNo Then
+                    e.Cancel = True
+                End If
+            Else
+                MsgBox("Can't exit ??", MsgBoxStyle.OkOnly)
                 e.Cancel = True
             End If
         End If
@@ -836,8 +870,16 @@ Public Class cls_APP_SearchForm
     'display file file .hlp
     Private Sub mnsHelp_Click(sender As Object, e As EventArgs) Handles mnsHelp.Click
 
-        'FileOpen(1, appPath + "\jlview.hlp", OpenMode.Input)
-        Process.Start(mvStr_AppPath + "\jlview.hlp")
+        Dim wFso_GetAllFileHlp As IO.FileInfo()
+        wFso_GetAllFileHlp = mvDic_DirectoryInfo.GetFiles("*.hlp")
+        If wFso_GetAllFileHlp.Count = 1 Then
+            'FileOpen(1, appPath + "\jlview.hlp", OpenMode.Input)
+            Process.Start(mvStr_AppPath + "\jlview.hlp")
+        Else
+            MsgBox("Not Found Hlp File", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+                   "Warning")
+        End If
+
     End Sub
 
     'get information from richtextbox to print 
