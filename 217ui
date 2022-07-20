@@ -1,0 +1,350 @@
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+Partial Class cls_APP_SearchForm
+
+
+    Inherits System.Windows.Forms.Form
+
+    'Form overrides dispose to clean up the component list.
+    <System.Diagnostics.DebuggerNonUserCode()>
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        Try
+            If disposing AndAlso components IsNot Nothing Then
+                components.Dispose()
+            End If
+        Finally
+            MyBase.Dispose(disposing)
+        End Try
+    End Sub
+
+    'Required by the Windows Form Designer
+    Private components As System.ComponentModel.IContainer
+
+    'NOTE: The following procedure is required by the Windows Form Designer
+    'It can be modified using the Windows Form Designer.  
+    'Do not modify it using the code editor.
+    <System.Diagnostics.DebuggerStepThrough()>
+    Private Sub InitializeComponent()
+        Me.cmbFontReceiptSize = New System.Windows.Forms.ComboBox()
+        Me.lblFontSize = New System.Windows.Forms.Label()
+        Me.lblTotalRecord = New System.Windows.Forms.Label()
+        Me.dgvInformationRecord = New System.Windows.Forms.DataGridView()
+        Me.txtReceiptCode = New System.Windows.Forms.TextBox()
+        Me.lblReceiptCode = New System.Windows.Forms.Label()
+        Me.txtPosNo = New System.Windows.Forms.TextBox()
+        Me.lblPosNo = New System.Windows.Forms.Label()
+        Me.txtShopCode = New System.Windows.Forms.TextBox()
+        Me.lblShopCode = New System.Windows.Forms.Label()
+        Me.cmdSearch = New System.Windows.Forms.Button()
+        Me.lblWorkType = New System.Windows.Forms.Label()
+        Me.lstWorkType = New System.Windows.Forms.ListBox()
+        Me.dtmFinish = New System.Windows.Forms.DateTimePicker()
+        Me.lblDateSearchFinish = New System.Windows.Forms.Label()
+        Me.dtmStart = New System.Windows.Forms.DateTimePicker()
+        Me.lbl_DateSearchStart = New System.Windows.Forms.Label()
+        Me.mnsMenu = New System.Windows.Forms.MenuStrip()
+        Me.mnsPrint = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnsQuit = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnsHelp = New System.Windows.Forms.ToolStripMenuItem()
+        Me.rtbReceiptDetail = New System.Windows.Forms.RichTextBox()
+        Me.pdgPrintDialog = New System.Windows.Forms.PrintDialog()
+        Me.pdtPrintDocument = New System.Drawing.Printing.PrintDocument()
+        Me.tlbSearchApp = New System.Windows.Forms.TableLayoutPanel()
+        Me.Panel1 = New System.Windows.Forms.Panel()
+        CType(Me.dgvInformationRecord, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.mnsMenu.SuspendLayout()
+        Me.tlbSearchApp.SuspendLayout()
+        Me.Panel1.SuspendLayout()
+        Me.SuspendLayout()
+        '
+        'cmbFontReceiptSize
+        '
+        Me.cmbFontReceiptSize.FormattingEnabled = True
+        Me.cmbFontReceiptSize.Location = New System.Drawing.Point(641, 123)
+        Me.cmbFontReceiptSize.Name = "cmbFontReceiptSize"
+        Me.cmbFontReceiptSize.Size = New System.Drawing.Size(121, 20)
+        Me.cmbFontReceiptSize.TabIndex = 37
+        '
+        'lblFontSize
+        '
+        Me.lblFontSize.AutoSize = True
+        Me.lblFontSize.Location = New System.Drawing.Point(569, 126)
+        Me.lblFontSize.Name = "lblFontSize"
+        Me.lblFontSize.Size = New System.Drawing.Size(66, 12)
+        Me.lblFontSize.TabIndex = 36
+        Me.lblFontSize.Text = "FontSize(F):"
+        '
+        'lblTotalRecord
+        '
+        Me.lblTotalRecord.AutoSize = True
+        Me.lblTotalRecord.Location = New System.Drawing.Point(3, 0)
+        Me.lblTotalRecord.Name = "lblTotalRecord"
+        Me.lblTotalRecord.Size = New System.Drawing.Size(73, 12)
+        Me.lblTotalRecord.TabIndex = 34
+        Me.lblTotalRecord.Text = "Total Record:"
+        '
+        'dgvInformationRecord
+        '
+        Me.dgvInformationRecord.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.dgvInformationRecord.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
+        Me.dgvInformationRecord.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.dgvInformationRecord.Location = New System.Drawing.Point(3, 46)
+        Me.dgvInformationRecord.Name = "dgvInformationRecord"
+        Me.dgvInformationRecord.RowHeadersWidth = 51
+        Me.dgvInformationRecord.RowTemplate.Height = 21
+        Me.dgvInformationRecord.Size = New System.Drawing.Size(562, 344)
+        Me.dgvInformationRecord.TabIndex = 33
+        Me.dgvInformationRecord.TabStop = False
+        '
+        'txtReceiptCode
+        '
+        Me.txtReceiptCode.Location = New System.Drawing.Point(92, 115)
+        Me.txtReceiptCode.Name = "txtReceiptCode"
+        Me.txtReceiptCode.Size = New System.Drawing.Size(200, 19)
+        Me.txtReceiptCode.TabIndex = 32
+        '
+        'lblReceiptCode
+        '
+        Me.lblReceiptCode.AutoSize = True
+        Me.lblReceiptCode.Location = New System.Drawing.Point(3, 118)
+        Me.lblReceiptCode.Name = "lblReceiptCode"
+        Me.lblReceiptCode.Size = New System.Drawing.Size(90, 12)
+        Me.lblReceiptCode.TabIndex = 31
+        Me.lblReceiptCode.Text = "Receipt Code(R)"
+        '
+        'txtPosNo
+        '
+        Me.txtPosNo.Location = New System.Drawing.Point(370, 64)
+        Me.txtPosNo.Name = "txtPosNo"
+        Me.txtPosNo.Size = New System.Drawing.Size(200, 19)
+        Me.txtPosNo.TabIndex = 30
+        '
+        'lblPosNo
+        '
+        Me.lblPosNo.AutoSize = True
+        Me.lblPosNo.Location = New System.Drawing.Point(318, 67)
+        Me.lblPosNo.Name = "lblPosNo"
+        Me.lblPosNo.Size = New System.Drawing.Size(42, 12)
+        Me.lblPosNo.TabIndex = 29
+        Me.lblPosNo.Text = "POS(P)"
+        '
+        'txtShopCode
+        '
+        Me.txtShopCode.Location = New System.Drawing.Point(92, 64)
+        Me.txtShopCode.Name = "txtShopCode"
+        Me.txtShopCode.Size = New System.Drawing.Size(200, 19)
+        Me.txtShopCode.TabIndex = 28
+        '
+        'lblShopCode
+        '
+        Me.lblShopCode.AutoSize = True
+        Me.lblShopCode.Location = New System.Drawing.Point(13, 67)
+        Me.lblShopCode.Name = "lblShopCode"
+        Me.lblShopCode.Size = New System.Drawing.Size(76, 12)
+        Me.lblShopCode.TabIndex = 27
+        Me.lblShopCode.Text = "Shop Code(C)"
+        '
+        'cmdSearch
+        '
+        Me.cmdSearch.CausesValidation = False
+        Me.cmdSearch.Location = New System.Drawing.Point(908, 45)
+        Me.cmdSearch.Name = "cmdSearch"
+        Me.cmdSearch.Size = New System.Drawing.Size(166, 56)
+        Me.cmdSearch.TabIndex = 26
+        Me.cmdSearch.Text = "Search(S)"
+        Me.cmdSearch.UseVisualStyleBackColor = True
+        '
+        'lblWorkType
+        '
+        Me.lblWorkType.AutoSize = True
+        Me.lblWorkType.Location = New System.Drawing.Point(607, 10)
+        Me.lblWorkType.Name = "lblWorkType"
+        Me.lblWorkType.Size = New System.Drawing.Size(54, 12)
+        Me.lblWorkType.TabIndex = 25
+        Me.lblWorkType.Text = "Nghiệp vụ"
+        '
+        'lstWorkType
+        '
+        Me.lstWorkType.FormattingEnabled = True
+        Me.lstWorkType.ItemHeight = 12
+        Me.lstWorkType.Location = New System.Drawing.Point(609, 25)
+        Me.lstWorkType.Name = "lstWorkType"
+        Me.lstWorkType.Size = New System.Drawing.Size(120, 76)
+        Me.lstWorkType.TabIndex = 24
+        '
+        'dtmFinish
+        '
+        Me.dtmFinish.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
+        Me.dtmFinish.Location = New System.Drawing.Point(370, 20)
+        Me.dtmFinish.Name = "dtmFinish"
+        Me.dtmFinish.Size = New System.Drawing.Size(200, 19)
+        Me.dtmFinish.TabIndex = 23
+        '
+        'lblDateSearchFinish
+        '
+        Me.lblDateSearchFinish.AutoSize = True
+        Me.lblDateSearchFinish.Location = New System.Drawing.Point(318, 25)
+        Me.lblDateSearchFinish.Name = "lblDateSearchFinish"
+        Me.lblDateSearchFinish.Size = New System.Drawing.Size(35, 12)
+        Me.lblDateSearchFinish.TabIndex = 22
+        Me.lblDateSearchFinish.Text = "TO(T)"
+        '
+        'dtmStart
+        '
+        Me.dtmStart.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
+        Me.dtmStart.Location = New System.Drawing.Point(92, 20)
+        Me.dtmStart.Name = "dtmStart"
+        Me.dtmStart.Size = New System.Drawing.Size(200, 19)
+        Me.dtmStart.TabIndex = 21
+        '
+        'lbl_DateSearchStart
+        '
+        Me.lbl_DateSearchStart.AutoSize = True
+        Me.lbl_DateSearchStart.Location = New System.Drawing.Point(13, 25)
+        Me.lbl_DateSearchStart.Name = "lbl_DateSearchStart"
+        Me.lbl_DateSearchStart.Size = New System.Drawing.Size(80, 12)
+        Me.lbl_DateSearchStart.TabIndex = 20
+        Me.lbl_DateSearchStart.Text = "DateSearch(D)"
+        '
+        'mnsMenu
+        '
+        Me.mnsMenu.Dock = System.Windows.Forms.DockStyle.None
+        Me.mnsMenu.ImageScalingSize = New System.Drawing.Size(20, 20)
+        Me.mnsMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnsPrint, Me.mnsQuit, Me.mnsHelp})
+        Me.mnsMenu.Location = New System.Drawing.Point(0, 0)
+        Me.mnsMenu.Name = "mnsMenu"
+        Me.mnsMenu.Size = New System.Drawing.Size(185, 24)
+        Me.mnsMenu.TabIndex = 19
+        Me.mnsMenu.Text = "MenuStrip1"
+        '
+        'mnsPrint
+        '
+        Me.mnsPrint.Name = "mnsPrint"
+        Me.mnsPrint.ShowShortcutKeys = False
+        Me.mnsPrint.Size = New System.Drawing.Size(59, 20)
+        Me.mnsPrint.Text = "Print(Y)"
+        '
+        'mnsQuit
+        '
+        Me.mnsQuit.Name = "mnsQuit"
+        Me.mnsQuit.Size = New System.Drawing.Size(57, 20)
+        Me.mnsQuit.Text = "Quit(X)"
+        '
+        'mnsHelp
+        '
+        Me.mnsHelp.Name = "mnsHelp"
+        Me.mnsHelp.Size = New System.Drawing.Size(61, 20)
+        Me.mnsHelp.Text = "Help(H)"
+        '
+        'rtbReceiptDetail
+        '
+        Me.rtbReceiptDetail.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.rtbReceiptDetail.Location = New System.Drawing.Point(571, 46)
+        Me.rtbReceiptDetail.Name = "rtbReceiptDetail"
+        Me.rtbReceiptDetail.Size = New System.Drawing.Size(562, 344)
+        Me.rtbReceiptDetail.TabIndex = 39
+        Me.rtbReceiptDetail.Text = ""
+        '
+        'pdgPrintDialog
+        '
+        Me.pdgPrintDialog.UseEXDialog = True
+        '
+        'pdtPrintDocument
+        '
+        '
+        'tlbSearchApp
+        '
+        Me.tlbSearchApp.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tlbSearchApp.ColumnCount = 2
+        Me.tlbSearchApp.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tlbSearchApp.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tlbSearchApp.Controls.Add(Me.lblTotalRecord, 0, 0)
+        Me.tlbSearchApp.Controls.Add(Me.rtbReceiptDetail, 1, 1)
+        Me.tlbSearchApp.Controls.Add(Me.dgvInformationRecord, 0, 1)
+        Me.tlbSearchApp.Location = New System.Drawing.Point(20, 192)
+        Me.tlbSearchApp.Margin = New System.Windows.Forms.Padding(2)
+        Me.tlbSearchApp.Name = "tlbSearchApp"
+        Me.tlbSearchApp.RowCount = 2
+        Me.tlbSearchApp.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.98901!))
+        Me.tlbSearchApp.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 89.01099!))
+        Me.tlbSearchApp.Size = New System.Drawing.Size(1136, 393)
+        Me.tlbSearchApp.TabIndex = 40
+        '
+        'Panel1
+        '
+        Me.Panel1.AllowDrop = True
+        Me.Panel1.Controls.Add(Me.dtmStart)
+        Me.Panel1.Controls.Add(Me.lbl_DateSearchStart)
+        Me.Panel1.Controls.Add(Me.cmdSearch)
+        Me.Panel1.Controls.Add(Me.lblFontSize)
+        Me.Panel1.Controls.Add(Me.lblShopCode)
+        Me.Panel1.Controls.Add(Me.cmbFontReceiptSize)
+        Me.Panel1.Controls.Add(Me.txtShopCode)
+        Me.Panel1.Controls.Add(Me.txtPosNo)
+        Me.Panel1.Controls.Add(Me.lblWorkType)
+        Me.Panel1.Controls.Add(Me.txtReceiptCode)
+        Me.Panel1.Controls.Add(Me.lstWorkType)
+        Me.Panel1.Controls.Add(Me.lblPosNo)
+        Me.Panel1.Controls.Add(Me.lblReceiptCode)
+        Me.Panel1.Controls.Add(Me.dtmFinish)
+        Me.Panel1.Controls.Add(Me.lblDateSearchFinish)
+        Me.Panel1.Location = New System.Drawing.Point(20, 22)
+        Me.Panel1.Name = "Panel1"
+        Me.Panel1.Size = New System.Drawing.Size(1136, 165)
+        Me.Panel1.TabIndex = 41
+        '
+        'cls_APP_SearchForm
+        '
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange
+        Me.ClientSize = New System.Drawing.Size(1162, 593)
+        Me.Controls.Add(Me.Panel1)
+        Me.Controls.Add(Me.tlbSearchApp)
+        Me.Controls.Add(Me.mnsMenu)
+        Me.Name = "cls_APP_SearchForm"
+        Me.Text = "Form1"
+        CType(Me.dgvInformationRecord, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.mnsMenu.ResumeLayout(False)
+        Me.mnsMenu.PerformLayout()
+        Me.tlbSearchApp.ResumeLayout(False)
+        Me.tlbSearchApp.PerformLayout()
+        Me.Panel1.ResumeLayout(False)
+        Me.Panel1.PerformLayout()
+        Me.ResumeLayout(False)
+        Me.PerformLayout()
+
+    End Sub
+
+    Friend WithEvents cmbFontReceiptSize As ComboBox
+    Friend WithEvents lblFontSize As Label
+    Friend WithEvents lblTotalRecord As Label
+    Friend WithEvents dgvInformationRecord As DataGridView
+    Friend WithEvents txtReceiptCode As TextBox
+    Friend WithEvents lblReceiptCode As Label
+    Friend WithEvents txtPosNo As TextBox
+    Friend WithEvents lblPosNo As Label
+    Friend WithEvents txtShopCode As TextBox
+    Friend WithEvents lblShopCode As Label
+    Friend WithEvents lblWorkType As Label
+    Friend WithEvents lstWorkType As ListBox
+    Friend WithEvents dtmFinish As DateTimePicker
+    Friend WithEvents lblDateSearchFinish As Label
+    Friend WithEvents dtmStart As DateTimePicker
+    Friend WithEvents lbl_DateSearchStart As Label
+    Friend WithEvents mnsMenu As MenuStrip
+    Friend WithEvents mnsPrint As ToolStripMenuItem
+    Friend WithEvents mnsQuit As ToolStripMenuItem
+    Friend WithEvents mnsHelp As ToolStripMenuItem
+    Friend WithEvents rtbReceiptDetail As RichTextBox
+    Friend WithEvents pdgPrintDialog As PrintDialog
+    Friend WithEvents pdtPrintDocument As Printing.PrintDocument
+    Friend WithEvents cmdSearch As Button
+    Friend WithEvents tlbSearchApp As TableLayoutPanel
+    Friend WithEvents Panel1 As Panel
+End Class
