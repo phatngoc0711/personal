@@ -1,0 +1,1080 @@
+Imports System.IO
+Imports System.Text
+Imports System.Text.RegularExpressions
+Imports System.Threading
+
+Public Class cls_APP_SearchForm
+
+    Private mvStr_AppPath As String = Application.StartupPath()
+    Private mvDic_DirectoryInfo As New IO.DirectoryInfo(mvStr_AppPath)
+    Private mvFso_GetAllFileIdx As IO.FileInfo()
+    Private mvDic_PathDataFile As New IO.DirectoryInfo(mvStr_AppPath + "\DATA")
+    Private mvFso_GetAllFileDat As IO.FileInfo()
+    Private mvLst_ListWorkType As New List(Of String)
+    Private mvInt_TotalTextBoxNotNull As Integer = 0
+    Private mvLst_WorkTypeNameFromIni As New List(Of String)
+    Private mvLst_ListDataGridView As New List(Of String)
+    Private mvLst_ListLineWordDetail As List(Of String)
+    Private mvLst_ListLineInFileConfigIni() As String
+    Private mvLst_ListIdWorkTypeFromListBox As New List(Of String)
+    Private mvInt_EventSearchCancel As Integer = 0
+    Private mvInt_FlagClose As Integer = 0
+    Private mvThr_CheckFileExist As New Thread(AddressOf subM_APP_CheckExistFileIni)
+    Private Const mcStr_ButtonSearchText = "Search(S)"
+    Private Const mcStr_ButtonCancelText = "Cancel(E)"
+    Private mvStr_GetLengthShopCD As String
+    Private mvStr_GetLengthPosNo As String
+    Private mvStr_GetLengthReceiptNo As String
+
+    'Check exist file ini
+    Private Sub subM_APP_CheckExistFileIni()
+
+        Try
+            mvLst_ListLineInFileConfigIni = File.ReadAllLines(mvStr_AppPath + "\config.ini")
+        Catch ex As Exception
+            Me.Close()
+        End Try
+        'get 2 list Worktype and Worktype Detail
+        mvLst_ListLineWordDetail = fncM_APP_GetIniWorkTypeNameLineInFileIni("[WorkTypeDetail]", "[DenpyoType]")
+        mvLst_WorkTypeNameFromIni = fncM_APP_GetIniWorkTypeNameLineInFileIni("[WorkType]", "[WorkTypeDetail]")
+    End Sub
+    Private Function fncM_APP_GetDigitInLine(ByVal iStr_Value As String) As String
+
+        Dim wStr_Value As String
+        wStr_Value = ""
+        For Each wChr_GetChar As Char In iStr_Value
+            If [Char].IsDigit(wChr_GetChar) Then
+                wStr_Value = wStr_Value + wChr_GetChar
+            End If
+        Next
+        Return wStr_Value
+    End Function
+    Private Sub subM_APP_SetLengthTextBox()
+
+        Try
+            mvLst_ListLineInFileConfigIni = File.ReadAllLines(mvStr_AppPath + "\config.ini")
+        Catch ex As Exception
+        End Try
+        For wInt_Counter1 As Integer = 0 To mvLst_ListLineInFileConfigIni.Length - 1 Step +1
+            If String.Equals(mvLst_ListLineInFileConfigIni(wInt_Counter1).Trim, "[Format]") Then
+                mvStr_GetLengthShopCD = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 2))
+                mvStr_GetLengthPosNo = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 3))
+                mvStr_GetLengthReceiptNo = fncM_APP_GetDigitInLine(mvLst_ListLineInFileConfigIni(wInt_Counter1 + 4))
+                Exit For
+            End If
+        Next wInt_Counter1
+    End Sub
+    'Get list line from position1 to position2 in file ini contain '='
+    Private Function fncM_APP_GetIniWorkTypeNameLineInFileIni(ByVal iStr_Position1 As String, ByVal iStr_Position2 As String) As List(Of String)
+
+        Dim wLst_ListWorkType As New List(Of String)
+        Try
+            For wInt_Counter1 As Integer = 0 To mvLst_ListLineInFileConfigIni.Length - 1 Step +1
+                If String.Compare(mvLst_ListLineInFileConfigIni(wInt_Counter1), iStr_Position1) = 0 Then
+                    For wInt_Counter2 As Integer = wInt_Counter1 + 2 To mvLst_ListLineInFileConfigIni.Length - 1 Step +1
+                        Dim wMth_Compare As Match = Regex.Match(mvLst_ListLineInFileConfigIni(wInt_Counter2),
+                                         "=",
+                                         RegexOptions.IgnoreCase)
+                        If wMth_Compare.Success Then
+                            wLst_ListWorkType.Add(mvLst_ListLineInFileConfigIni(wInt_Counter2))
+                        End If
+                        If String.Compare(mvLst_ListLineInFileConfigIni(wInt_Counter1), iStr_Position2) = 0 Then
+                            Exit For
+                        End If
+                    Next wInt_Counter2
+                End If
+            Next wInt_Counter1
+        Catch ex As Exception
+            Me.Close()
+        End Try
+
+        Return wLst_ListWorkType
+    End Function
+
+    'From 1 list Line, get one line cointain Key, then get Name
+    Private Function fncM_APP_GetIniWorkTypeName(ByVal iLst_ListLineInPut As List(Of String), ByVal iStr_Key As String) As String
+
+        Dim wStr_StringNameWordType As String
+        wStr_StringNameWordType = ""
+        Dim wInt_FlagI As Integer
+        For wInt_Counter1 As Integer = 0 To iLst_ListLineInPut.Count - 1 Step +1
+            If InStr(iLst_ListLineInPut(wInt_Counter1), iStr_Key) Then
+                wInt_FlagI = wInt_Counter1
+                Dim wStr_GetName As New StringBuilder()
+                For Each wChr_GetChar As Char In iLst_ListLineInPut(wInt_Counter1)
+                    If [Char].IsLetter(wChr_GetChar) Or String.Compare(wChr_GetChar, " ") = 0 Then
+                        wStr_GetName.Append(wChr_GetChar)
+                    End If
+                Next
+                wStr_StringNameWordType = wStr_GetName.ToString
+                Exit For
+            End If
+        Next wInt_Counter1
+        Return wStr_StringNameWordType
+    End Function
+
+    'Input TextBox.text
+    'KEY is specified length in file int
+    'Return string has number 0 if Textbox.text isn't enough paramater 
+    Private Function fncM_APP_GetTextValue(ByVal iStr_TextInput As String, iInt_LenghtMaxTextBox As Integer) As String
+
+        Dim wStr_ValueText As String
+        wStr_ValueText = ""
+        Dim wStr_GetTextLengthInput As Integer
+        wStr_GetTextLengthInput = iStr_TextInput.Length
+        For wInt_Counter1 As Integer = 0 To iInt_LenghtMaxTextBox - wStr_GetTextLengthInput - 1 Step +1
+            wStr_ValueText = wStr_ValueText + "0"
+        Next wInt_Counter1
+        wStr_ValueText = wStr_ValueText + iStr_TextInput
+        Return wStr_ValueText
+    End Function
+
+    'Check line fit the condition in datetimepicker
+    Private Function fncM_APP_LineCheckDateTime(ByVal iStr_LineInput As String, ByVal iDtm_DayStart As Date, ByVal iDtm_DayFinish As Date) As Boolean
+
+        Dim wLst_ListValOfLine() As String
+        'val(0) : date value
+        wLst_ListValOfLine = iStr_LineInput.ToString().Split("	")
+        Dim wStr_GetDateValue As String
+        wStr_GetDateValue = wLst_ListValOfLine(0)
+        Dim wDtm_DayNeedCheck As Date
+        Dim wStr_Year As String
+        Dim wStr_Month As String
+        Dim wStr_Day As String
+        wStr_Year = wStr_GetDateValue(0) + wStr_GetDateValue(1) + wStr_GetDateValue(2) + wStr_GetDateValue(3)
+        wStr_Month = wStr_GetDateValue(4) + wStr_GetDateValue(5)
+        wStr_Day = wStr_GetDateValue(6) + wStr_GetDateValue(7)
+        wDtm_DayNeedCheck = New Date(Convert.ToInt32(wStr_Year), Convert.ToInt32(wStr_Month), Convert.ToInt32(wStr_Day))
+        If wDtm_DayNeedCheck >= iDtm_DayStart And wDtm_DayNeedCheck <= iDtm_DayFinish Then
+            Return True
+        End If
+        Return False
+    End Function
+
+    'Get String from  position1 to position2
+    Private Function fncM_APP_GetStringFromTwoPosition(ByVal iStr_LineInput As String, ByVal iInt_Position1 As Integer, ByVal iInt_Position2 As Integer) As String
+
+        Dim wStr_Result As String
+        wStr_Result = ""
+        For wInt_Counter1 As Integer = iInt_Position1 To iInt_Position2 Step +1
+            wStr_Result = wStr_Result + iStr_LineInput(wInt_Counter1)
+        Next wInt_Counter1
+        Return wStr_Result
+    End Function
+
+    'Return list WorkTypeId From ListWorkTypeName selected
+    Private Function fncM_APP_GetIdWorkTypeFromListBox() As List(Of String)
+
+        Dim wLst_ListWordTypeId As New List(Of String)
+        Dim wLst_LineWorkTypeTemp As New List(Of String)
+        For wInt_Counter1 As Integer = 0 To mvLst_WorkTypeNameFromIni.Count - 1 Step +1
+            wLst_LineWorkTypeTemp.Add(mvLst_WorkTypeNameFromIni(wInt_Counter1))
+        Next wInt_Counter1
+        For wInt_Counter1 As Integer = 0 To mvLst_ListWorkType.Count - 1 Step +1
+            For wInt_Counter2 As Integer = 0 To wLst_LineWorkTypeTemp.Count - 1 Step +1
+                If wLst_LineWorkTypeTemp(wInt_Counter2).Contains(mvLst_ListWorkType(wInt_Counter1)) Then
+                    wLst_ListWordTypeId.Add(fncM_APP_GetStringFromTwoPosition(wLst_LineWorkTypeTemp(wInt_Counter2), 2, 5))
+                    wLst_LineWorkTypeTemp.RemoveAt(wInt_Counter2)
+                    wInt_Counter2 = wInt_Counter2 - 1
+                    Exit For
+                End If
+            Next wInt_Counter2
+        Next wInt_Counter1
+        Return wLst_ListWordTypeId
+    End Function
+
+    'Check 1 String is in 1 ListString 
+    Private Function fncM_APP_CheckStringExistInListString(ByVal iInt_ListInput As List(Of String), ByVal iStr_KeyWord As String) As Boolean
+
+        For wInt_Counter1 As Integer = 0 To iInt_ListInput.Count - 1 Step +1
+            If String.Compare(iInt_ListInput(wInt_Counter1), iStr_KeyWord) = 0 Then
+                Return True
+            End If
+        Next wInt_Counter1
+        Return False
+    End Function
+
+    'Check line fit the condition in listbox
+    Private Function fncM_APP_LineCheckListBox(ByVal iStr_LineInput As String) As Boolean
+
+        Dim wStr_IdWorkType() As String
+        'val(5) : id worktype
+        wStr_IdWorkType = iStr_LineInput.ToString().Split("	")
+        Dim wstr_IdWorkTypeDetail As String
+        wstr_IdWorkTypeDetail = ""
+        wstr_IdWorkTypeDetail = fncM_APP_GetStringFromTwoPosition(wStr_IdWorkType(5), 0, 3)
+        Dim wLst_ListListBoxValue As New List(Of String)
+        wLst_ListListBoxValue = mvLst_ListIdWorkTypeFromListBox           '1'
+        Return fncM_APP_CheckStringExistInListString(wLst_ListListBoxValue, wstr_IdWorkTypeDetail)
+    End Function
+
+    'Check null textbox
+    Private Function fncM_APP_CheckTextBoxNotNull(ByVal iStr_TextBox As String) As Boolean
+
+        If Not String.Equals(iStr_TextBox, "0") Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    'Check line fit the condition in textbox
+    Private Function fncM_APP_LineCheckText(ByVal iStr_LineCheck As String, ByVal iStr_TextBox1 As String, ByVal iStr_TextBox2 As String, ByVal iStr_TextBox3 As String) As Boolean
+
+        Dim wStr_ValueFromLine() As String
+        wStr_ValueFromLine = iStr_LineCheck.ToString().Split("	")
+        If String.Equals(iStr_TextBox1, wStr_ValueFromLine(1)) And String.Equals(iStr_TextBox3, wStr_ValueFromLine(3)) And String.Equals(iStr_TextBox2, wStr_ValueFromLine(2)) Then
+            Return True
+        End If
+
+        If mvInt_TotalTextBoxNotNull = 0 Then
+            Return True
+
+        ElseIf mvInt_TotalTextBoxNotNull = 1 Then
+            If String.Equals(iStr_TextBox1, wStr_ValueFromLine(1)) Then
+                Return True
+            End If
+            If String.Equals(iStr_TextBox2, wStr_ValueFromLine(2)) Then
+                Return True
+            End If
+            If String.Equals(iStr_TextBox3, wStr_ValueFromLine(3)) Then
+                Return True
+            End If
+
+        ElseIf mvInt_TotalTextBoxNotNull = 2 Then
+            If String.Equals(iStr_TextBox1, wStr_ValueFromLine(1)) And String.Equals(iStr_TextBox2, wStr_ValueFromLine(2)) Then
+                Return True
+            End If
+            If String.Equals(iStr_TextBox1, wStr_ValueFromLine(1)) And String.Equals(iStr_TextBox3, wStr_ValueFromLine(3)) Then
+                Return True
+            End If
+            If String.Equals(iStr_TextBox3, wStr_ValueFromLine(3)) And String.Equals(iStr_TextBox2, wStr_ValueFromLine(2)) Then
+                Return True
+            End If
+        End If
+        Return False
+    End Function
+
+    'set default for datetimepicker
+    Private Sub subM_APP_SetDefaultDateTime()
+
+        Dim wStr_FirstFileIdxName As String
+        wStr_FirstFileIdxName = ""
+        Try
+            wStr_FirstFileIdxName = mvFso_GetAllFileIdx(0).Name
+            Dim wStr_Year As String
+            Dim wStr_Month As String
+            Dim wStr_Day As String
+            wStr_Year = wStr_FirstFileIdxName(0) + wStr_FirstFileIdxName(1) + wStr_FirstFileIdxName(2) + wStr_FirstFileIdxName(3)
+            wStr_Month = wStr_FirstFileIdxName(4) + wStr_FirstFileIdxName(5)
+            wStr_Day = wStr_FirstFileIdxName(6) + wStr_FirstFileIdxName(7)
+            dtmStart.Value = New Date(Convert.ToInt32(wStr_Year), Convert.ToInt32(wStr_Month), Convert.ToInt32(wStr_Day))
+        Catch
+            Me.Close()
+
+        End Try
+
+
+    End Sub
+
+    'delete param '0' in string
+    Private Function fncM_APP_DeleteChar0(ByVal iStr_StringNeedDelete As String) As String
+
+        Dim wStr_Result As String
+        wStr_Result = ""
+        Dim wInt_CountChar0 As Integer = 0
+        For wInt_Counter1 As Integer = 0 To iStr_StringNeedDelete.Length - 1 Step +1
+            If Not String.Equals(iStr_StringNeedDelete(wInt_Counter1), "0") Then
+                wInt_CountChar0 = wInt_Counter1
+                Exit For
+            End If
+        Next
+        For wInt_Counter1 As Integer = wInt_CountChar0 To iStr_StringNeedDelete.Length - 1 Step +1
+            wStr_Result = wStr_Result + iStr_StringNeedDelete(wInt_Counter1)
+        Next wInt_Counter1
+        Return wStr_Result
+    End Function
+
+    'Set display datetime in receipt
+    Private Function fncM_APP_DayFormatInReceipt(ByVal iStr_DateStringInput As String) As String
+
+        Dim wStr_Result As String
+        wStr_Result = ""
+        wStr_Result = iStr_DateStringInput(0) + iStr_DateStringInput(1) + iStr_DateStringInput(2) + iStr_DateStringInput(3) + "/" + iStr_DateStringInput(4) + iStr_DateStringInput(5) + "/" + iStr_DateStringInput(6) + iStr_DateStringInput(7)
+        Return wStr_Result
+    End Function
+
+    'get line after condition and add them to datagrid
+    Private Sub subM_APP_GetAllLineAfterSearch()
+
+        If mvInt_EventSearchCancel Mod 2 = 0 Then
+            lblTotalRecord.Text = "Total Record: "
+            cmdSearch.Text = mcStr_ButtonCancelText
+            mvInt_EventSearchCancel = mvInt_EventSearchCancel + 1
+            Dim wDtm_DayStart As Date
+            Dim wDtm_DayFinish As Date
+            wDtm_DayStart = dtmStart.Value
+            wDtm_DayFinish = dtmFinish.Value
+            Dim wStr_TextBoxShopCode As String = txtShopCode.Text
+            Dim wStr_TexBoxPosNo As String = txtPosNo.Text
+            Dim wStr_TextBoxReceiptCode As String = txtReceiptCode.Text
+            If Not String.Equals(wStr_TextBoxShopCode, "0") Then
+                wStr_TextBoxShopCode = fncM_APP_GetTextValue(txtShopCode.Text, 4)
+            End If
+            If Not String.Equals(wStr_TexBoxPosNo, "0") Then
+                wStr_TexBoxPosNo = fncM_APP_GetTextValue(txtPosNo.Text, 2)
+            End If
+            If Not String.Equals(wStr_TextBoxReceiptCode, "0") Then
+                wStr_TextBoxReceiptCode = fncM_APP_GetTextValue(txtReceiptCode.Text, 8)
+            End If
+            Dim wTbl_TableDataGrid As New DataTable()
+            wTbl_TableDataGrid.Columns.Add("WorkType", Type.GetType("System.String"))
+            wTbl_TableDataGrid.Columns.Add("Date", Type.GetType("System.String"))
+            wTbl_TableDataGrid.Columns.Add("Shop CODE", Type.GetType("System.String"))
+            wTbl_TableDataGrid.Columns.Add("Pos NO", Type.GetType("System.String"))
+            wTbl_TableDataGrid.Columns.Add("Receipt Code", Type.GetType("System.String"))
+            wTbl_TableDataGrid.Columns.Add("Manage Code", Type.GetType("System.String"))
+            dgvInformationRecord.DataSource = wTbl_TableDataGrid
+            Dim wInt_DoEventTemp As Integer = 0
+            Dim wInt_FinishOpenFile As Integer = 0
+            Dim wInt_SearchTemp As Integer = 0
+            For wInt_Counter1 As Integer = 0 To mvFso_GetAllFileIdx.Length - 1 Step +1
+                Using wFso_ObjReader As New StreamReader(mvStr_AppPath + "\" + mvFso_GetAllFileIdx(wInt_Counter1).Name)          '1
+                    Do While wFso_ObjReader.Peek() <> -1
+                        If mvInt_EventSearchCancel Mod 2 = 0 Then
+                            Exit For
+                        End If
+                        wInt_DoEventTemp = wInt_DoEventTemp + 1
+                        Dim wStr_ReadLine As String = wFso_ObjReader.ReadLine()
+                        If fncM_APP_LineCheckDateTime(wStr_ReadLine, wDtm_DayStart, wDtm_DayFinish) Then                                 '2'
+                            If fncM_APP_LineCheckText(wStr_ReadLine, wStr_TextBoxShopCode, wStr_TexBoxPosNo, wStr_TextBoxReceiptCode) Then                            '3'
+                                If fncM_APP_LineCheckListBox(wStr_ReadLine) Then                                       '4
+
+                                    If dgvInformationRecord.Rows.Count > 3000 Then
+                                        MsgBox("Not Over 3000", MsgBoxStyle.OkOnly Or MsgBoxStyle.Exclamation, "Warning")
+                                        mvInt_EventSearchCancel = mvInt_EventSearchCancel + 1
+                                        cmdSearch.Text = mcStr_ButtonSearchText
+                                        lblTotalRecord.Text = "Total Record: 3000"
+                                        wInt_FinishOpenFile = 1
+                                        Exit For
+                                    End If
+                                    Dim wStr_ValueDataGrid() As String
+                                    wStr_ValueDataGrid = wStr_ReadLine.ToString().Split("	")
+                                    mvLst_ListDataGridView.Add(wStr_ReadLine)
+                                    Dim wStr_RowDataGrid(wStr_ValueDataGrid.Length - 5) As String
+                                    Dim typeWordId As String
+                                    typeWordId = ""
+                                    typeWordId = wStr_ValueDataGrid(wStr_ValueDataGrid.Length - 5).Trim()
+                                    wStr_RowDataGrid(0) = fncM_APP_GetIniWorkTypeName(mvLst_ListLineWordDetail, typeWordId)
+                                    For wInt_Counter2 As Integer = 1 To wStr_ValueDataGrid.Length - 5 Step +1
+                                        wStr_RowDataGrid(wInt_Counter2) = wStr_ValueDataGrid(wInt_Counter2 - 1).Trim()
+                                    Next wInt_Counter2
+                                    wTbl_TableDataGrid.Rows.Add(wStr_RowDataGrid)
+                                End If
+                            End If
+                        End If
+                        Dim wInt_IndexRandom As Integer
+                        wInt_IndexRandom = CInt(Math.Floor((200 - 100 + 1) * Rnd())) + 100
+                        If wInt_DoEventTemp Mod wInt_IndexRandom = 0 And wInt_SearchTemp = 0 Then
+                            Application.DoEvents()
+                            If wTbl_TableDataGrid.Rows.Count < 5 Then
+                                wInt_SearchTemp = 1
+                            End If
+                            wInt_DoEventTemp = 0
+                        End If
+
+                        Dim wInt_IndexRandom1 As Integer
+                        wInt_IndexRandom1 = CInt(Math.Floor((200000 - 100000 + 1) * Rnd())) + 100000
+                        If wInt_DoEventTemp Mod wInt_IndexRandom1 = 0 And wInt_SearchTemp = 1 Then
+                            Application.DoEvents()
+                            wInt_DoEventTemp = 0
+                        End If
+                    Loop
+                    wFso_ObjReader.Close()
+                End Using
+                If wInt_Counter1 = mvFso_GetAllFileIdx.Length - 1 Then
+                    mvInt_EventSearchCancel = mvInt_EventSearchCancel + 1
+                    cmdSearch.Text = mcStr_ButtonSearchText
+                    lblTotalRecord.Text = "Total Record: " + (dgvInformationRecord.Rows.Count - 1).ToString
+                End If
+                If wInt_FinishOpenFile = 1 Then
+                    Exit For
+                End If
+            Next wInt_Counter1
+        Else
+            mvInt_EventSearchCancel = mvInt_EventSearchCancel + 1
+            cmdSearch.Text = mcStr_ButtonSearchText
+            lblTotalRecord.Text = "Total Record: " + (dgvInformationRecord.Rows.Count - 1).ToString
+        End If
+    End Sub
+
+    'Event click button
+    Private Sub cmdSearch_Click(sender As Object, e As EventArgs) Handles cmdSearch.Click
+
+        rtbReceiptDetail.Clear()
+        'Button1.Text = "Cancel (E)"
+        mvLst_ListIdWorkTypeFromListBox = fncM_APP_GetIdWorkTypeFromListBox()
+        mvInt_TotalTextBoxNotNull = 0
+        If fncM_APP_CheckTextBoxNotNull(txtShopCode.Text.ToString) Then
+            mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+        End If
+        If fncM_APP_CheckTextBoxNotNull(txtPosNo.Text.ToString) Then
+            mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+        End If
+        If fncM_APP_CheckTextBoxNotNull(txtReceiptCode.Text.ToString) Then
+            mvInt_TotalTextBoxNotNull = mvInt_TotalTextBoxNotNull + 1
+        End If
+        subM_APP_GetAllLineAfterSearch()
+    End Sub
+
+    'Set default textbox
+    Private Sub subM_APP_SetTextboxDefault()
+
+        txtShopCode.TextAlign = HorizontalAlignment.Right
+        txtShopCode.MaxLength = mvStr_GetLengthShopCD
+        txtPosNo.TextAlign = HorizontalAlignment.Right
+        txtPosNo.MaxLength = mvStr_GetLengthPosNo
+        txtReceiptCode.TextAlign = HorizontalAlignment.Right
+        txtReceiptCode.MaxLength = mvStr_GetLengthReceiptNo
+        txtShopCode.Text = 0
+        txtPosNo.Text = 0
+        txtReceiptCode.Text = 0
+    End Sub
+
+    'add value to combobox
+    Private Sub subM_APP_SetComboBoxDefault()
+
+        cmbFontReceiptSize.Items.Add("9")
+        cmbFontReceiptSize.Items.Add("12")
+        cmbFontReceiptSize.Items.Add("15")
+        cmbFontReceiptSize.Items.Add("18")
+        cmbFontReceiptSize.Items.Add("21")
+        cmbFontReceiptSize.Items.Add("24")
+        cmbFontReceiptSize.SelectedIndex = 0
+        cmbFontReceiptSize.MaxLength = 2
+    End Sub
+
+    'set event when load form
+    Private Sub frm_APP_SearchForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Try
+            mvFso_GetAllFileIdx = mvDic_DirectoryInfo.GetFiles("*.idx")
+            mvFso_GetAllFileDat = mvDic_PathDataFile.GetFiles("*.DAT")
+        Catch
+
+        End Try
+        'Get Length TextBox 
+        subM_APP_SetLengthTextBox()
+        'Set key press = true
+        Me.KeyPreview = True
+        '--------------------
+        'Check exist .IDK
+        Dim wInt_TotalFileIdx As Integer
+        wInt_TotalFileIdx = mvFso_GetAllFileIdx.Length
+        Dim wFso_CountFileIni As IO.FileInfo() = mvDic_DirectoryInfo.GetFiles("*.ini")
+        Dim wInt_TotalFileIni As Integer
+        wInt_TotalFileIni = wFso_CountFileIni.Length
+        If wInt_TotalFileIdx = 0 Then
+            If wInt_TotalFileIni <> 0 Then
+
+                MsgBox("Not Found IDX FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+                   "Warning")
+                Close()
+            Else
+                MsgBox("Not Found IDX,INI FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+                   "Warning")
+                Close()
+            End If
+        End If
+        '-------------------------------------------------------
+        'Check .ini
+
+        If wInt_TotalFileIni = 0 Then
+            MsgBox("Not Found INI FILE", MsgBoxStyle.OkOnly Or MsgBoxStyle.Critical,
+               "Warning")
+            Close()
+        End If
+
+        mvThr_CheckFileExist.Start()
+        '-------------------------------------------------------
+        'WorkType In ListBox
+        Dim wList_ListLineInFileIni() As String
+        Try
+            wList_ListLineInFileIni = File.ReadAllLines(mvStr_AppPath + "\config.ini")
+
+
+            For wInt_Counter1 As Integer = 0 To wList_ListLineInFileIni.Length - 1 Step +1
+                If String.Equals(wList_ListLineInFileIni(wInt_Counter1), "[WorkType]") Then
+                    For wInt_Counter2 As Integer = wInt_Counter1 + 2 To wList_ListLineInFileIni.Length - 1 Step +1
+                        Dim wMth_Compare As Match = Regex.Match(wList_ListLineInFileIni(wInt_Counter2), "=", RegexOptions.IgnoreCase)
+                        If wMth_Compare.Success Then
+                            Dim wStr_GetNameWorkTypeInFileIni As New StringBuilder()
+                            For Each wChr_GetChar As Char In wList_ListLineInFileIni(wInt_Counter2)
+                                If [Char].IsLetter(wChr_GetChar) Or String.Compare(wChr_GetChar, " ") = 0 Then
+                                    wStr_GetNameWorkTypeInFileIni.Append(wChr_GetChar)
+                                End If
+                            Next
+                            lstWorkType.Items.Add(wStr_GetNameWorkTypeInFileIni)
+                        End If
+                        If String.Equals(wList_ListLineInFileIni(wInt_Counter2), "[WorkTypeDetail]") Then
+                            Exit For
+                        End If
+                    Next wInt_Counter2
+                End If
+            Next wInt_Counter1
+        Catch ex As Exception
+            MessageBox.Show(ex.Message)
+        End Try
+        '-------------------------------------------------------
+        lstWorkType.SelectionMode = SelectionMode.MultiExtended
+        'Dim i As Integer
+        For wInt_Counter1 As Integer = 0 To Me.lstWorkType.Items.Count - 1
+            Me.lstWorkType.SetSelected(wInt_Counter1, True)
+        Next wInt_Counter1
+        '-------------------------------------------------------
+        'Datagridview
+        Dim wTbl_TableDataGrid As New DataTable()
+        wTbl_TableDataGrid.Columns.Add("WorkType", Type.GetType("System.String"))
+        wTbl_TableDataGrid.Columns.Add("Date", Type.GetType("System.String"))
+        wTbl_TableDataGrid.Columns.Add("Shop CODE", Type.GetType("System.String"))
+        wTbl_TableDataGrid.Columns.Add("Pos NO", Type.GetType("System.String"))
+        wTbl_TableDataGrid.Columns.Add("Receipt Code", Type.GetType("System.String"))
+        wTbl_TableDataGrid.Columns.Add("Manage Code", Type.GetType("System.String"))
+        dgvInformationRecord.DataSource = wTbl_TableDataGrid
+        '--------------------------------------------------------------------
+        'Set DATE TIME
+        subM_APP_SetDefaultDateTime()
+        dtmStart.Select()
+        '------------------------------------------------------------------- 
+        'ComboBox
+        subM_APP_SetComboBoxDefault()
+        'TextBox
+        subM_APP_SetTextboxDefault()
+        'Block Type RichTextBox
+        rtbReceiptDetail.ReadOnly = True
+        rtbReceiptDetail.ScrollBars = RichTextBoxScrollBars.Both
+        'RichTextBox1.WordWrap = False
+        mvInt_FlagClose = 1
+
+    End Sub
+
+    'Set shorcut key for control
+    Private Sub frm_APP_SearchForm_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.C Then
+                e.Handled = True
+                txtShopCode.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.P Then
+                e.Handled = True
+                txtPosNo.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.R Then
+                e.Handled = True
+                txtReceiptCode.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.D Then
+                e.Handled = True
+                dtmStart.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.T Then
+                e.Handled = True
+                dtmFinish.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.Y Then
+                e.Handled = True
+                If Not rtbReceiptDetail.Text = "" Then
+                    If pdgPrintDialog.ShowDialog = DialogResult.OK Then
+                        pdtPrintDocument.Print()
+                    End If
+                End If
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.X Then
+                e.Handled = True
+                If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+               "Warning") = vbYes Then
+                    Close()
+                End If
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.F Then
+                e.Handled = True
+                cmbFontReceiptSize.Focus()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt Then
+            If e.KeyCode = Keys.H Then
+                e.Handled = True
+                Process.Start(mvStr_AppPath + "\jlview.hlp")
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt And mvInt_EventSearchCancel Mod 2 = 0 Then
+            If e.KeyCode = Keys.S Then
+                e.Handled = True
+                Me.cmdSearch.PerformClick()
+            End If
+        End If
+        If Control.ModifierKeys = Keys.Alt And mvInt_EventSearchCancel Mod 2 = 1 Then
+            If e.KeyCode = Keys.E Then
+                e.Handled = True
+                Me.cmdSearch.PerformClick()
+            End If
+        End If
+    End Sub
+
+    'Set event when close form
+    Private Sub frm_APP_SearchForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+
+        If mvInt_FlagClose = 1 Then
+            If cmdSearch.Text = mcStr_ButtonSearchText Then
+                If MsgBox("Exit ??", MsgBoxStyle.YesNo Or MsgBoxStyle.Question,
+                   "Warning") = vbNo Then
+                    e.Cancel = True
+                End If
+            Else
+                MsgBox("Can't exit ??", MsgBoxStyle.OkOnly)
+                e.Cancel = True
+            End If
+        End If
+    End Sub
+
+    'get list id worktype when choose item in listbox
+    Private Sub lstWorkType_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstWorkType.SelectedIndexChanged
+
+        For wInt_Counter1 = mvLst_ListWorkType.Count - 1 To 0 Step -1
+            mvLst_ListWorkType.RemoveAt(wInt_Counter1)
+        Next
+        For wInt_Counter1 As Integer = 0 To lstWorkType.SelectedItems.Count - 1 Step +1
+            mvLst_ListWorkType.Add(lstWorkType.SelectedItems.Item(wInt_Counter1).ToString)
+        Next wInt_Counter1
+    End Sub
+
+    'event Print
+    Private Sub mnsPrint_Click(sender As Object, e As EventArgs) Handles mnsPrint.Click
+
+        'PrintDialog1.ShowDialog()
+        If Not rtbReceiptDetail.Text = "" Then
+            If pdgPrintDialog.ShowDialog = DialogResult.OK Then
+                pdtPrintDocument.Print()
+            End If
+        End If
+    End Sub
+
+    'Set color datagridview
+    Private Sub dgvInformationRecord_Sorted(sender As Object, e As EventArgs) Handles dgvInformationRecord.Sorted
+
+        If dgvInformationRecord.RowCount > 1 Then
+            For wInt_Counter1 As Integer = 0 To dgvInformationRecord.Rows.Count - 2
+                dgvInformationRecord.Rows(wInt_Counter1).DefaultCellStyle.BackColor = Color.LightGreen
+                wInt_Counter1 = wInt_Counter1 + 1
+            Next
+        End If
+
+    End Sub
+
+    'set color datagridview
+    Private Sub dgvInformationRecord_DataBindingComplete(sender As Object, e As DataGridViewBindingCompleteEventArgs) Handles dgvInformationRecord.DataBindingComplete
+
+        If dgvInformationRecord.RowCount > 1 Then
+            For wInt_Counter1 As Integer = 0 To dgvInformationRecord.Rows.Count - 2
+                dgvInformationRecord.Rows(wInt_Counter1).DefaultCellStyle.BackColor = Color.LightGreen
+                wInt_Counter1 = wInt_Counter1 + 1
+            Next
+        End If
+    End Sub
+
+    'event click line in datagridview to show information
+    Private Sub dgvInformationRecord_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvInformationRecord.CellClick
+
+        dgvInformationRecord.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        rtbReceiptDetail.Clear()
+        If dgvInformationRecord.RowCount > 1 Then
+            If e.RowIndex < dgvInformationRecord.RowCount - 1 Then
+
+                subM_APP_FillRichTextBox()
+            Else
+                rtbReceiptDetail.Clear()
+            End If
+        End If
+    End Sub
+
+    'change fontsize in combobox
+    Private Sub cmbFontReceiptSize_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbFontReceiptSize.SelectedIndexChanged
+
+        rtbReceiptDetail.WordWrap = False
+        Dim fontSize As String
+        fontSize = cmbFontReceiptSize.SelectedItem.ToString
+        rtbReceiptDetail.Font = New Font("MS UI Gothic", Convert.ToInt32(fontSize), FontStyle.Regular)
+    End Sub
+
+
+    Private Sub cmbFontReceiptSize_KeyPress(sender As Object, e As KeyPressEventArgs) Handles cmbFontReceiptSize.KeyPress
+
+        cmbFontReceiptSize.SelectAll()
+        e.Handled = True
+    End Sub
+    Private Function fncM_GetMoneyFormat(ByVal iStr_Money As String) As String
+
+        Dim wStr_Value As String
+        wStr_Value = ""
+        Dim wInt_Length As Integer
+        wInt_Length = iStr_Money.Length
+        If wInt_Length < 4 Then
+            wStr_Value = iStr_Money
+        ElseIf wInt_Length = 4 Then
+            wStr_Value = iStr_Money(0) + "," + iStr_Money(1) + iStr_Money(2) + iStr_Money(3)
+        ElseIf wInt_Length = 5 Then
+            wStr_Value = iStr_Money(0) + iStr_Money(1) + "," + iStr_Money(2) + iStr_Money(3) + iStr_Money(4)
+        ElseIf wInt_Length = 6 Then
+            wStr_Value = iStr_Money(0) + iStr_Money(1) + iStr_Money(2) + "," + iStr_Money(3) + iStr_Money(4) + iStr_Money(5)
+        ElseIf wInt_Length = 7 Then
+            wStr_Value = iStr_Money(0) + "," + iStr_Money(1) + iStr_Money(2) + iStr_Money(3) + "," + iStr_Money(4) + iStr_Money(5) + iStr_Money(6)
+        End If
+        Return wStr_Value
+    End Function
+    'get information show in richtextbox
+    Private Function fncM_APP_GetFileDATNameInFileIDX(ByVal iStr_Input As String) As String
+        Dim wStr_Value As String
+        wStr_Value = ""
+        For wInt_Counter1 As Integer = 5 To iStr_Input.Length - 1 Step +1
+            wStr_Value = wStr_Value + iStr_Input(wInt_Counter1)
+        Next wInt_Counter1
+        Return wStr_Value
+    End Function
+    Private Sub subM_APP_FillRichTextBox()
+
+        Dim wLst_ValueAtCurrentRow() As String
+        Dim wStr_NameFileDat As String
+        wLst_ValueAtCurrentRow = mvLst_ListDataGridView(dgvInformationRecord.CurrentRow.Index).Split("	")
+        wStr_NameFileDat = wLst_ValueAtCurrentRow(7)
+        'If mvFso_GetAllFileDat.Length > 0 Then
+        Dim mvFso_GetAllFileDatTemp As New List(Of String)
+        Try
+            For wInt_Counter1 As Integer = 0 To mvFso_GetAllFileDat.Count - 1 Step +1
+                mvFso_GetAllFileDatTemp.Add(mvFso_GetAllFileDat(wInt_Counter1).ToString)
+            Next wInt_Counter1
+        Catch
+        End Try
+        If fncM_APP_CheckStringExistInListString(mvFso_GetAllFileDatTemp, fncM_APP_GetFileDATNameInFileIDX(wStr_NameFileDat)) Then
+            Dim wStr_LineStart As String
+            Dim wStr_CountLine As String
+            wStr_LineStart = wLst_ValueAtCurrentRow(8)
+            wStr_CountLine = wLst_ValueAtCurrentRow(9)
+
+            '-----------------------------------------------------------
+            'Dim lineData() As String
+            'lineData = File.ReadAllLines(appPath + "\" + link)
+            Dim wLst_LineData As New List(Of String)
+            Using wStm_StreamReader As New System.IO.StreamReader(mvStr_AppPath + "\" + wStr_NameFileDat, System.Text.Encoding.Default)          '1
+                Do While wStm_StreamReader.Peek() <> -1
+                    Dim Line As String = wStm_StreamReader.ReadLine()
+                    wLst_LineData.Add(Line)
+                Loop
+                wStm_StreamReader.Close()
+            End Using
+            'line 0 
+            Dim wStr_Line0 As String = wLst_LineData(Convert.ToInt32(wStr_LineStart) - 1)
+            Dim wLst_ValueLine0() As String
+            wLst_ValueLine0 = wStr_Line0.ToString.Split("	")
+            'line 1
+            Dim wStr_Line1 As New List(Of String)
+            For wInt_Counter1 As Integer = Convert.ToInt32(wStr_LineStart) To Convert.ToInt32(wStr_LineStart) + Convert.ToInt32(wStr_CountLine) - 2 Step +1
+                Dim wLst_ValueLine1() As String
+                wLst_ValueLine1 = wLst_LineData(wInt_Counter1).Split("	")
+                If String.Equals(wLst_ValueLine1(0), "1") Then
+                    wStr_Line1.Add(wLst_LineData(wInt_Counter1))
+                End If
+            Next wInt_Counter1
+            'line 2 
+            Dim wStr_Line2 As New List(Of String)
+            For wInt_Counter1 As Integer = Convert.ToInt32(wStr_LineStart) + wStr_Line2.Count To Convert.ToInt32(wStr_LineStart) + Convert.ToInt32(wStr_CountLine) - 2 Step +1
+                Dim wLst_ValueLine2() As String
+                wLst_ValueLine2 = wLst_LineData(wInt_Counter1).Split("	")
+                If String.Equals(wLst_ValueLine2(0), "2") Then
+                    wStr_Line2.Add(wLst_LineData(wInt_Counter1))
+                End If
+            Next wInt_Counter1
+            'line 3
+            Dim wStr_Line3 As String = wLst_LineData(Convert.ToInt32(wStr_LineStart) + Convert.ToInt32(wStr_CountLine) - 2)
+            Dim wLst_ValueLine3() As String = wStr_Line3.ToString.Split("	")
+            Dim wInt_CurrentRowIndex As Integer
+            With dgvInformationRecord
+                wInt_CurrentRowIndex = .CurrentRow.Index
+                rtbReceiptDetail.AppendText(" [" + .Rows(wInt_CurrentRowIndex).Cells("WorkType").Value.ToString + "] ")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Shop CODE").Value.ToString + "-")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Pos NO").Value.ToString + "-")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Receipt Code").Value.ToString + Environment.NewLine)
+                rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Store Name                    " + vbTab + ": " + wLst_ValueLine0(9) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("POS NO                         " + vbTab + ": " + fncM_APP_DeleteChar0(.Rows(wInt_CurrentRowIndex).Cells("Pos NO").Value.ToString) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Receipt Code                  " + vbTab + ": " + fncM_APP_DeleteChar0(.Rows(wInt_CurrentRowIndex).Cells("Receipt Code").Value.ToString) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Work Day                       " + vbTab + ": " + fncM_APP_DayFormatInReceipt(.Rows(wInt_CurrentRowIndex).Cells("Date").Value.ToString) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Pos DayTime                  " + vbTab + ": " + wLst_ValueLine0(6) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("CD Staff                        " + vbTab + ": " + wLst_ValueLine0(15) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Name Staff                     " + vbTab + ": " + wLst_ValueLine0(16) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("CD Customer                  " + vbTab + ": " + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Name Customer              " + vbTab + ": " + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Total                             " + vbTab + ": " + wStr_Line1.Count.ToString + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Total Money                    " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine0(19)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Subtotal                       " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine0(20)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Money given                   " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine0(21)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Change                        " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine0(22)) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Not Tax                        " + vbTab + ": \" + wLst_ValueLine0(23) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Tax                              " + vbTab + ": \" + wLst_ValueLine0(27) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Point of use                  " + vbTab + ": " + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Plus                             " + vbTab + ": " + Environment.NewLine)
+                rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
+                For wInt_Counter1 As Integer = 0 To wStr_Line1.Count - 1 Step +1
+                    Dim wLst_ValueLine1() As String
+                    wLst_ValueLine1 = wStr_Line1(wInt_Counter1).Split("	")
+                    rtbReceiptDetail.AppendText("ID item                          " + vbTab + ": " + (wInt_Counter1 + 1).ToString + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("ID PLU                          " + vbTab + ": " + wLst_ValueLine1(12) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Item Name                     " + vbTab + ": " + wLst_ValueLine1(10) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Tax Type                       " + vbTab + ": " + wLst_ValueLine1(11) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Total Sell                      " + vbTab + ": " + wLst_ValueLine1(7) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("After Discount                 " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine1(8)) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Discount                      " + vbTab + ": \" + wLst_ValueLine1(9) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
+                Next wInt_Counter1
+                For wInt_Counter1 As Integer = 0 To wStr_Line2.Count - 1 Step +1
+                    Dim wLst_ValueLine2() As String
+                    wLst_ValueLine2 = wStr_Line2(wInt_Counter1).Split("	")
+                    rtbReceiptDetail.AppendText("Payment Type               " + vbTab + ": " + wLst_ValueLine2(11) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("Amount money                " + vbTab + ": \" + fncM_GetMoneyFormat(wLst_ValueLine2(5)) + Environment.NewLine)
+                    rtbReceiptDetail.AppendText("----------------------------------------------------------" + Environment.NewLine)
+                Next wInt_Counter1
+                rtbReceiptDetail.AppendText("Change                        " + vbTab + ": " + wLst_ValueLine3(7) + Environment.NewLine)
+                rtbReceiptDetail.AppendText("Amount money                " + vbTab + ": \" + wLst_ValueLine3(5) + Environment.NewLine)
+            End With
+        Else
+            Dim wInt_CurrentRowIndex As Integer
+            With dgvInformationRecord
+                wInt_CurrentRowIndex = .CurrentRow.Index
+                rtbReceiptDetail.AppendText(" [" + .Rows(wInt_CurrentRowIndex).Cells("WorkType").Value.ToString + "] ")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Shop CODE").Value.ToString + "-")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Pos NO").Value.ToString + "-")
+                rtbReceiptDetail.AppendText(.Rows(wInt_CurrentRowIndex).Cells("Receipt Code").Value.ToString + Environment.NewLine)
+            End With
+
+        End If
+    End Sub
+
+    'envent key up down in datagridview to show information
+    Private Sub dgvInformationRecord_KeyUp(sender As Object, e As KeyEventArgs) Handles dgvInformationRecord.KeyUp
+        dgvInformationRecord.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        rtbReceiptDetail.Clear()
+        If dgvInformationRecord.CurrentRow.Index < dgvInformationRecord.RowCount - 1 Then
+            'RichTextBox1.AppendText(DataGridView1.CurrentRow.Index.ToString + vbTab + DataGridView1.RowCount.ToString)
+            subM_APP_FillRichTextBox()
+        Else
+            rtbReceiptDetail.Clear()
+        End If
+    End Sub
+
+    'drop combobox
+    Private Sub cmbFontReceiptSize_Click(sender As Object, e As EventArgs) Handles cmbFontReceiptSize.Click
+
+        cmbFontReceiptSize.DroppedDown = True
+    End Sub
+
+    'display file file .hlp
+    Private Sub mnsHelp_Click(sender As Object, e As EventArgs) Handles mnsHelp.Click
+
+        Dim wFso_GetAllFileHlp As IO.FileInfo()
+        wFso_GetAllFileHlp = mvDic_DirectoryInfo.GetFiles("*.hlp")
+        If wFso_GetAllFileHlp.Count = 1 Then
+            'FileOpen(1, appPath + "\jlview.hlp", OpenMode.Input)
+            Process.Start(mvStr_AppPath + "\jlview.hlp")
+        Else
+            MsgBox("Not Found Hlp File", MsgBoxStyle.OkOnly Or MsgBoxStyle.Exclamation,
+                   "Warning")
+        End If
+
+    End Sub
+
+    'get information from richtextbox to print 
+    Private Sub pdtPrintDocument_PrintPage(sender As Object, e As Printing.PrintPageEventArgs) Handles pdtPrintDocument.PrintPage
+
+        Static wInt_CurrentChar As Integer
+        Static wInt_CurrentLine As Integer
+        Dim wFnt_TextFont As Font = rtbReceiptDetail.Font
+        Dim wInt_Height As Integer
+        Dim wInt_Witdh As Integer
+        Dim wInt_Left As Integer
+        Dim wInt_Top As Integer
+        With pdtPrintDocument.DefaultPageSettings
+            wInt_Height = .PaperSize.Height - .Margins.Top - .Margins.Bottom
+            wInt_Witdh = .PaperSize.Width - .Margins.Left - .Margins.Right
+            wInt_Left = pdtPrintDocument.DefaultPageSettings.Margins.Left
+            wInt_Top = pdtPrintDocument.DefaultPageSettings.Margins.Top
+        End With
+        'Optional Rectangle Blue.
+        'e.Graphics.DrawRectangle(Pens.Blue, New Rectangle(left, top, w, h))
+        If pdtPrintDocument.DefaultPageSettings.Landscape Then
+            Dim wInt_temp As Integer
+            wInt_temp = wInt_Height
+            wInt_Height = wInt_Witdh
+            wInt_Witdh = wInt_temp
+        End If
+        Dim wInt_Lines As Integer
+        wInt_Lines = CInt(Math.Round(wInt_Height / wFnt_TextFont.Height))
+        Dim wRec_Rectangle As New Rectangle(wInt_Left, wInt_Top, wInt_Witdh, wInt_Height)
+        Dim wFmt_format As StringFormat
+        If Not rtbReceiptDetail.WordWrap Then
+            wFmt_format = New StringFormat(StringFormatFlags.NoWrap)
+            wFmt_format.Trimming = StringTrimming.EllipsisWord
+            Dim wInt_Counter1 As Integer
+            For wInt_Counter1 = wInt_CurrentLine To Math.Min(wInt_CurrentLine + wInt_Lines, rtbReceiptDetail.Lines.Length - 1)
+                e.Graphics.DrawString(rtbReceiptDetail.Lines(wInt_Counter1), wFnt_TextFont, Brushes.Black, New RectangleF(wInt_Left, wInt_Top + wFnt_TextFont.Height * (wInt_Counter1 - wInt_CurrentLine), wInt_Witdh, wFnt_TextFont.Height), wFmt_format)
+            Next wInt_Counter1
+            wInt_CurrentLine += wInt_Lines
+            If wInt_CurrentLine >= txtShopCode.Lines.Length Then
+                e.HasMorePages = False
+                wInt_CurrentLine = 0
+            Else
+                e.HasMorePages = True
+            End If
+            Exit Sub
+        End If
+        wFmt_format = New StringFormat(StringFormatFlags.LineLimit)
+        Dim wInt_Line As Integer
+        Dim wInt_Chars As Integer
+        e.Graphics.MeasureString(Mid(rtbReceiptDetail.Text, wInt_CurrentChar + 1), wFnt_TextFont, New SizeF(wInt_Witdh, wInt_Height), wFmt_format, wInt_Chars, wInt_Line)
+        If wInt_CurrentChar + wInt_Chars < rtbReceiptDetail.Text.Length Then
+            If rtbReceiptDetail.Text.Substring(wInt_CurrentChar + wInt_Chars, 1) <> " " And rtbReceiptDetail.Text.Substring(wInt_CurrentChar + wInt_Chars, 1) <> vbLf Then
+                While wInt_Chars > 0
+                    rtbReceiptDetail.Text.Substring(wInt_CurrentChar + wInt_Chars, 1)
+                    rtbReceiptDetail.Text.Substring(wInt_CurrentChar + wInt_Chars, 1)
+                    wInt_Chars -= 1
+                End While
+                wInt_Chars += 1
+            End If
+        End If
+        e.Graphics.DrawString(rtbReceiptDetail.Text.Substring(wInt_CurrentChar, wInt_Chars), wFnt_TextFont, Brushes.Black, wRec_Rectangle, wFmt_format)
+        wInt_CurrentChar = wInt_CurrentChar + wInt_Chars
+        If wInt_CurrentChar < rtbReceiptDetail.Text.Length Then
+            e.HasMorePages = True
+        Else
+            e.HasMorePages = False
+            wInt_CurrentChar = 0
+        End If
+    End Sub
+    Private Sub mnsQuit_Click(sender As Object, e As EventArgs) Handles mnsQuit.Click
+
+        Close()
+    End Sub
+
+    Private Sub txtShopCode_Click(sender As Object, e As EventArgs) Handles txtShopCode.Click
+
+        txtShopCode.SelectAll()
+    End Sub
+    Private Sub txtPosNo_Click(sender As Object, e As EventArgs) Handles txtPosNo.Click
+
+        txtPosNo.SelectAll()
+    End Sub
+    Private Sub txtReceiptCode_Click(sender As Object, e As EventArgs) Handles txtReceiptCode.Click
+
+        txtReceiptCode.SelectAll()
+    End Sub
+    Private Sub txtShopCode_TextChanged(sender As Object, e As EventArgs) Handles txtShopCode.TextChanged
+
+        If txtShopCode.TextLength = 0 Then
+            txtShopCode.Text = 0
+            txtShopCode.SelectAll()
+        End If
+    End Sub
+    Private Sub txtPosNo_TextChanged(sender As Object, e As EventArgs) Handles txtPosNo.TextChanged
+
+        If txtPosNo.TextLength = 0 Then
+            txtPosNo.Text = 0
+            txtPosNo.SelectAll()
+        End If
+    End Sub
+    Private Sub txtReceiptCode_TextChanged(sender As Object, e As EventArgs) Handles txtReceiptCode.TextChanged
+
+        If txtReceiptCode.TextLength = 0 Then
+            txtReceiptCode.Text = 0
+            txtReceiptCode.SelectAll()
+        End If
+    End Sub
+    Private Sub txtShopCode_KeyPress(sender As Object, e As KeyPressEventArgs) Handles txtShopCode.KeyPress
+
+
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+        'If txtShopCode.TextLength = 1 And e.KeyChar = "0" And txtShopCode.Text = "0" Then
+        '    e.Handled = True
+        'End If
+        If txtShopCode.SelectionStart = 0 And e.KeyChar = "0" Then
+            e.Handled = True
+        End If
+    End Sub
+    Private Sub txtPosNo_KeyPress(sender As Object, e As KeyPressEventArgs) Handles txtPosNo.KeyPress
+
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+        'If txtShopCode.TextLength = 1 And e.KeyChar = "0" And txtPosNo.Text = "0" Then
+        '    e.Handled = True
+        'End If
+        If txtPosNo.SelectionStart = 0 And e.KeyChar = "0" Then
+            e.Handled = True
+        End If
+    End Sub
+    Private Sub txtReceiptCode_KeyPress(sender As Object, e As KeyPressEventArgs) Handles txtReceiptCode.KeyPress
+
+        If Not Char.IsDigit(e.KeyChar) And Not e.KeyChar = Chr(Keys.Back) Then
+            e.Handled = True
+        End If
+        'If txtShopCode.TextLength = 1 And e.KeyChar = "0" And txtReceiptCode.Text = "0" Then
+        '    e.Handled = True
+        'End If
+        If txtReceiptCode.SelectionStart = 0 And e.KeyChar = "0" Then
+            e.Handled = True
+        End If
+    End Sub
+
+    Private Sub TableLayoutPanel1_MouseMove(sender As Object, e As MouseEventArgs) Handles tlbSearchApp.MouseMove
+
+        If e.Y > 50 Then
+            If e.Y < 400 Then
+                Me.Cursor = Cursors.VSplit
+            End If
+        ElseIf dgvInformationRecord.Bounds.Contains(PointToClient(Cursor.Position)) Then
+            Me.Cursor = Cursors.Default
+        Else
+            Me.Cursor = Cursors.Default
+        End If
+
+        If (e.Button = System.Windows.Forms.MouseButtons.Left) Then
+            Dim wInt_Column0Width As Integer
+            wInt_Column0Width = CInt(tlbSearchApp.ColumnStyles(0).Width)
+            If (e.X > 0) Then
+                tlbSearchApp.ColumnStyles(0).Width = e.X
+            End If
+            If (e.X - wInt_Column0Width > 0) Then
+                tlbSearchApp.ColumnStyles(1).Width = tlbSearchApp.Width - e.X
+            End If
+        End If
+    End Sub
+
+    Private Sub Form1_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
+        Me.MinimumSize = New Size(1050, 350)
+    End Sub
+
+End Class
